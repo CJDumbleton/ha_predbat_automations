@@ -1,5 +1,7 @@
 alias: PV clipping - make room in battery overnight
-description: ""
+description: >-
+  Don't allow predbat to fill battery overnight if PV clipping is forecast in
+  the next 24 hours
 trigger:
   - platform: time
     at: "00:05:00"
