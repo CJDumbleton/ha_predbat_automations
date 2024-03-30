@@ -1,4 +1,4 @@
-# ha_automations
+# Home assistant automations to use with predbat
 
 Automations to adjust best_soc_max to minimise PV clipping by hybrid inverter in predbat. The logic is as follows:
 - At 00:05 (After my Solcast update automation runs at midnight. We want to stop the battery charging fully overnight)
