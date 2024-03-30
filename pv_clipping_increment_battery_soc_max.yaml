@@ -65,8 +65,8 @@ action:
     data:
       option: >
         {# Round down the time to nearest half-hour #}
-        {{ (now().strftime("%s") | int - ((now().strftime("%s")) | int ) % 1800
-        ) | timestamp_custom("%H:%M:%S") }}
+        {% set t = now().strftime("%s") | int %}
+        {{ (t - (t % 1800 )) | timestamp_custom("%H:%M:%S") }}
     target:
       entity_id: select.predbat_manual_discharge
 mode: single
