@@ -1,8 +1,9 @@
 alias: PV clipping - Set best_soc_max to 0 auto
-description: ""
+description: At sunset, reset best_soc_max input variable
 trigger:
-  - platform: time
-    at: "22:00:00"
+  - platform: sun
+    event: sunset
+    offset: 0
 condition: []
 action:
   - service: input_number.set_value
