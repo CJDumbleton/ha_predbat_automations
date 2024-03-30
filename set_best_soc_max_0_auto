@@ -1,0 +1,14 @@
+alias: PV clipping - Set best_soc_max to 0 auto
+description: ""
+trigger:
+  - platform: time
+    at: "23:00:00"
+condition: []
+action:
+  - service: input_number.set_value
+    metadata: {}
+    data:
+      value: 0
+    target:
+      entity_id: input_number.predbat_best_soc_max
+mode: single
