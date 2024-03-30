@@ -9,5 +9,5 @@ The logic is as follows:
   - If solar forecast for next 30 minute period > inverter limit:
     - increase best_soc_max by (solar forecast for next 30 minute period - inverter limit)
     - force discharge for coming 30 minute period (so when a cloud comes over and pv drops below inverter limit, the battery won't charge from solar)
-- At sunset, set best_soc_max to 0 (auto)
+- At sunset, reset best_soc_max to 0 (auto)
 - Note: you must have Solcast set up so your AC capacity is equal to your DC capacity (both equal to your array peak kW). Otherwise, Solcast will provide clipped forecast data.
