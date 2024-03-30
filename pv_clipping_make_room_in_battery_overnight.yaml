@@ -32,8 +32,13 @@ action:
           {% if loop.index0 == 144 %}
             {% break %}
           {% endif %}
-        {%- endfor -%}  
-        {{ (battery_max_capacity.value - pv_clipped.value) | float }}
+        {%- endfor -%}
+        {# Leave the value at 0 (auto) if pv_clipped.value < 0.1 #}
+        {% if pv_clipped.value < 0.1 %}
+          {{ 0 }}
+        {% else %}
+          {{ (battery_max_capacity.value - pv_clipped.value) | float }}
+        {% endif %}
     target:
       entity_id: input_number.predbat_best_soc_max
 mode: single
