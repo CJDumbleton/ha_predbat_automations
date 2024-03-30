@@ -35,13 +35,13 @@ action:
     metadata: {}
     data:
       value: >
-        {# Default is 5 kW hybrid inverter.  Change the 5 to 3.6 if you have a
-        3.6 kW inverter#} {% set inverter_limit = namespace(value = 5 / 6) %} {%
-        set battery_soc_max = namespace(value =
-        states('input_number.predbat_best_soc_max') | float) %} {% set
-        pv_clipped = namespace(value=0.0) %} {% set pv_prev =
-        namespace(value=0.0) %} {% set pv_cur = namespace(value=0.0) %} {%- for
-        this_item in state_attr('predbat.pv_energy', 'results') -%}
+        {# Default is 5 kW hybrid inverter.  Change the 5 to 3.6 if you have a 3.6 kW inverter#} 
+        {% set inverter_limit = namespace(value = 5 / 6) %} 
+        {% set battery_soc_max = namespace(value = states('input_number.predbat_best_soc_max') | float) %} 
+        {% set pv_clipped = namespace(value=0.0) %} 
+        {% set pv_prev = namespace(value=0.0) %} 
+        {% set pv_cur = namespace(value=0.0) %} 
+        {%- for this_item in state_attr('predbat.pv_energy', 'results') -%}
           {% if loop.index0 == 0 %}
             {%- set pv_prev.value = state_attr('predbat.pv_energy', 'results')[this_item] | float -%}
           {% else %}
@@ -55,7 +55,8 @@ action:
           {% if loop.index0 == 3 %}
             {% break %}
           {% endif %}
-        {%- endfor -%} {{ (battery_soc_max.value + pv_clipped.value) | float }}
+        {%- endfor -%} 
+        {{ (battery_soc_max.value + pv_clipped.value) | float }}
     target:
       entity_id: input_number.predbat_best_soc_max
   - service: select.select_first
