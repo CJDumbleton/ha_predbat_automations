@@ -1,5 +1,7 @@
 alias: PV clipping - increment soc_max_value
-description: ""
+description: >-
+  Increment battery_soc_max throughout day if PV clipping forecast in next 30
+  minutes
 trigger:
   - platform: time_pattern
     minutes: "1"
