@@ -1,6 +1,6 @@
-alias: PV clipping - increment soc_max_value
+alias: PV clipping - increment best_soc_max
 description: >-
-  Increment battery_soc_max throughout day if PV clipping forecast in next 30
+  Increment best_soc_max throughout day if PV clipping forecast in next 30
   minutes
 trigger:
   - platform: time_pattern
@@ -16,11 +16,11 @@ condition:
       {% set pv_clipped = namespace(value=0.0) %} 
       {% set pv_prev = namespace(value=0.0) %} 
       {% set pv_cur = namespace(value=0.0) %} 
-      {%- for this_item in state_attr('predbat.pv_energy', 'results') -%}
+      {%- for ten_min_period in state_attr('predbat.pv_energy', 'results') -%}
         {% if loop.index0 == 0 %}
-          {%- set pv_prev.value = state_attr('predbat.pv_energy', 'results')[this_item] | float -%}
+          {%- set pv_prev.value = state_attr('predbat.pv_energy', 'results')[ten_min_period] | float -%}
         {% else %}
-          {%- set pv_cur.value = state_attr('predbat.pv_energy', 'results')[this_item] | float -%}
+          {%- set pv_cur.value = state_attr('predbat.pv_energy', 'results')[ten_min_period] | float -%}
           {% if pv_cur.value - pv_prev.value > inverter_limit.value %}
             {%- set pv_clipped.value = pv_clipped.value + pv_cur.value - pv_prev.value - inverter_limit.value -%}
           {% endif %}
@@ -32,22 +32,26 @@ condition:
         {% endif %}
       {%- endfor -%} 
       {{ pv_clipped.value > 0 }}
+  - condition: sun
+    before: sunset
+    after: sunrise
 action:
   - service: input_number.set_value
     metadata: {}
     data:
       value: >
-        {# Default is 5 kW hybrid inverter.  Change the 5 to 3.6 if you have a
-        3.6 kW inverter#} 
+        {# Default is 5 kW hybrid inverter.  Change the 5 to 3.6 if you have a 3.6 kW inverter #} 
         {% set inverter_limit = namespace(value = 5 / 6) %} 
-        {% set battery_soc_max = namespace(value = states('input_number.predbat_best_soc_max') | float) %} 
+        {# Default is 9.5 kW battery. Change to your battery capacity. #}  
+        {% set battery_max_capacity = namespace(value = 9.5) %}
+        {% set best_soc_max = namespace(value = states('input_number.predbat_best_soc_max') | float) %} 
         {% set pv_clipped = namespace(value=0.0) %} 
         {% set pv_prev = namespace(value=0.0) %} {% set pv_cur = namespace(value=0.0) %} 
-        {%- for this_item in state_attr('predbat.pv_energy', 'results') -%}
+        {%- for ten_min_period in state_attr('predbat.pv_energy', 'results') -%}
           {% if loop.index0 == 0 %}
-            {%- set pv_prev.value = state_attr('predbat.pv_energy', 'results')[this_item] | float -%}
+            {%- set pv_prev.value = state_attr('predbat.pv_energy', 'results')[ten_min_period] | float -%}
           {% else %}
-            {%- set pv_cur.value = state_attr('predbat.pv_energy', 'results')[this_item] | float -%}
+            {%- set pv_cur.value = state_attr('predbat.pv_energy', 'results')[ten_min_period] | float -%}
             {% if pv_cur.value - pv_prev.value > inverter_limit.value %}
               {%- set pv_clipped.value = pv_clipped.value + pv_cur.value - pv_prev.value - inverter_limit.value -%}
             {% endif %}
@@ -57,7 +61,8 @@ action:
           {% if loop.index0 == 3 %}
             {% break %}
           {% endif %}
-        {%- endfor -%} {{ (battery_soc_max.value + pv_clipped.value) | float }}
+        {%- endfor -%} 
+        {{ [(best_soc_max.value + pv_clipped.value) | float, battery_max_capacity.value] |min }}
     target:
       entity_id: input_number.predbat_best_soc_max
   - service: select.select_option
