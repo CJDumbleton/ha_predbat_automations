@@ -1,4 +1,4 @@
-# Home assistant automations to use with predbat
+# Under development: Home assistant automations to use with predbat
 
 ## Automations to adjust best_soc_max to minimise PV clipping by hybrid inverter in predbat
 The logic is as follows:
