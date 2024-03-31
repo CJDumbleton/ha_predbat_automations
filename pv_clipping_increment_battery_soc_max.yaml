@@ -35,6 +35,9 @@ condition:
   - condition: sun
     before: sunset
     after: sunrise
+  - condition: numeric_state
+    entity_id: input_number.predbat_best_soc_max
+    above: 0
 action:
   - service: input_number.set_value
     metadata: {}
