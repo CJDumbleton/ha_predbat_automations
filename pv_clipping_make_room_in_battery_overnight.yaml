@@ -3,9 +3,22 @@ description: >-
   Don't allow predbat to fill battery overnight if PV clipping is forecast in
   the next 24 hours
 trigger:
-  - platform: time
-    at: "00:05:00"
-condition: []
+  - platform: sun
+    event: sunset
+    offset: "00:15:00"
+  - platform: state
+    entity_id:
+      - automation.solcast_update
+    attribute: last_triggered
+    for:
+      hours: 0
+      minutes: |
+        {{ states('input_number.predbat_calculate_plan_every') | int + 5}}
+      seconds: 0
+condition:
+  - condition: sun
+    before: sunrise
+    after: sunset
 action:
   - service: input_number.set_value
     metadata: {}
@@ -15,14 +28,16 @@ action:
         {% set inverter_limit = namespace(value = 5 / 6) %} 
         {# Default is 9.5 kW battery. Change to your battery capacity. #}  
         {% set battery_max_capacity = namespace(value = 9.5) %}  
+        {# Default is 2 kW minimum best_soc_max. Change as you wish. #}
+        {% set best_soc_max_min = namespace(value=2.0) %}  
         {% set pv_clipped = namespace(value=0.0) %}  
         {% set pv_prev = namespace(value=0.0) %}  
         {% set pv_cur = namespace(value=0.0) %}  
-        {%- for this_item in state_attr('predbat.pv_energy', 'results') -%}
+        {%- for ten_min_period in state_attr('predbat.pv_energy', 'results') -%}
           {% if loop.index0 == 0 %}
-            {%- set pv_prev.value = state_attr('predbat.pv_energy', 'results')[this_item] | float -%}
+            {%- set pv_prev.value = state_attr('predbat.pv_energy', 'results')[ten_min_period] | float -%}
           {% else %}
-            {%- set pv_cur.value = state_attr('predbat.pv_energy', 'results')[this_item] | float -%}
+            {%- set pv_cur.value = state_attr('predbat.pv_energy', 'results')[ten_min_period] | float -%}
             {% if pv_cur.value - pv_prev.value > inverter_limit.value %}
               {%- set pv_clipped.value = pv_clipped.value + pv_cur.value - pv_prev.value - inverter_limit.value -%}
             {% endif %}
@@ -37,7 +52,7 @@ action:
         {% if pv_clipped.value < 0.1 %}
           {{ 0 }}
         {% else %}
-          {{ (battery_max_capacity.value - pv_clipped.value) | float }}
+          {{ [(battery_max_capacity.value - pv_clipped.value) | float, best_soc_max_min.value] |max }}
         {% endif %}
     target:
       entity_id: input_number.predbat_best_soc_max
