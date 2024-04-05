@@ -1,12 +1,15 @@
-# Under development: Home assistant automations to use with predbat
-
-## Automations to adjust best_soc_max to minimise PV clipping by hybrid inverter in predbat
 The logic is as follows:
-- We want to stop the battery charging fully overnight if PV clipping is forecast in the next 24 hours. So, at sunset and after any Solcast update between sunset and sunrise, after delay of input_number.predbat_calculate_plan_every + 5 minutes: 
-  - Calculate: forecast clipped PV for day = sum of 10 minute predbat.pv_energy forecasts > inverter limit
-  - Set best_soc_max = battery capacity - forecast clipped PV for day
-- Between sunrise and sunset, at 1 minute past and 31 minutes past the hour:
-  - If solar forecast for next 30 minute period > inverter limit:
-    - Increment best_soc_max by (solar forecast for next 30 minute period - inverter limit)
-    - force discharge for coming 30 minute period (so when a cloud comes over and PV drops below inverter limit, the battery won't charge from solar)
+1. We want to stop the battery charging fully overnight if PV clipping is forecast in the next 24 hours. So, at sunset and after any Solcast update between sunset and sunrise or if import rate toggles between positive and negative, after delay of `input_number.predbat_calculate_plan_every` + 5 minutes: 
+	- If `predbat.rates < 0`, 
+		- set `input_number.predbat_best_soc_max = 0` (auto), 
+	- else:
+		- Calculate: forecast clipped PV for day = sum of 10 minute `predbat.pv_energy` forecasts > inverter limit
+		- Set `input_number.predbat_best_soc_max` = battery capacity - forecast clipped PV for day
+2. Between sunrise and sunset, at 1 minute past and 31 minutes past the hour:
+	- If `input_number.predbat_best_soc_max != 0` and solar forecast for next 30 minute period > inverter limit:
+	    - Increment `input_number.predbat_best_soc_max` by (solar forecast for next 30 minute period - inverter limit)
+3. If `sensor.givtcp_{geserial}_pv_power` changes from >= inverter limit to < inverter limit
+	- Set `select.predbat_manual_discharge` for this half-hour (to prioritise export over battery charging if the sun goes behind a cloud)
+4. If `sensor.givtcp_{geserial}_pv_power` becomes >= inverter limit
+	- Reset `select.predbat_manual_discharge`
 - Note: you must have Solcast set up so your AC capacity is equal to your DC capacity (both equal to your array peak kW). Otherwise, Solcast will provide clipped forecast data.
