@@ -1,0 +1,19 @@
+alias: PV clipping - PV drops below inverter limit
+description: Predbat force manual discharge to prioritise export over battery charging if the sun goes behind a cloud. (Replace geserial with your GE inverter serial number.)
+trigger:
+  - platform: numeric_state
+    entity_id:
+      - sensor.givtcp_{geserial}_pv_power
+    below: 5000
+condition: []
+action:
+  - service: select.select_option
+    metadata: {}
+    data:
+      option: >
+        {# Round down the time to nearest half-hour #} 
+        {% set t = now().strftime("%s") | int %} 
+        {{ (t - (t % 1800 )) | timestamp_custom("%H:%M:%S") }}
+    target:
+      entity_id: select.predbat_manual_discharge
+mode: single
