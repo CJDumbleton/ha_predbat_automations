@@ -8,7 +8,10 @@ trigger:
     entity_id:
       - sensor.givtcp_{geserial}_pv_power
     below: 5000
-condition: []
+condition:
+  - condition: numeric_state
+    entity_id: predbat.rates
+    above: 0
 action:
   - service: select.select_option
     metadata: {}
