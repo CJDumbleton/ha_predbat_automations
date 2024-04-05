@@ -1,0 +1,16 @@
+alias: PV clipping - PV goes above inverter limit
+description: Cancel any predbat force manual discharge. (Replace geserial with your GE inverter serial number. Replace 5000 with your hybrid inverter limit in Watts.)
+trigger:
+  - platform: numeric_state
+    entity_id:
+      - sensor.givtcp_{geserial}_pv_power
+    above: 5000
+condition: []
+action:
+  - service: select.select_option
+    metadata: {}
+    data:
+      option: Reset
+    target:
+      entity_id: select.predbat_manual_discharge
+mode: single
