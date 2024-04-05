@@ -1,5 +1,8 @@
 alias: PV clipping - PV drops below inverter limit
-description: Predbat force manual discharge to prioritise export over battery charging if the sun goes behind a cloud. (Replace geserial with your GE inverter serial number. Replace 5000 with your hybrid inverter limit in Watts.)
+description:  >-
+  Predbat force manual discharge to prioritise export over battery charging if the sun goes 
+  behind a cloud. (Replace geserial with your GE inverter serial number. 
+  Replace 5000 with your hybrid inverter limit in Watts.)
 trigger:
   - platform: numeric_state
     entity_id:
