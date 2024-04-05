@@ -8,7 +8,7 @@ The logic is as follows:
 2. Between sunrise and sunset, at 1 minute past and 31 minutes past the hour:
 	- If `input_number.predbat_best_soc_max != 0` and solar forecast for next 30 minute period > inverter limit:
 	    - Increment `input_number.predbat_best_soc_max` by (solar forecast for next 30 minute period - inverter limit)
-3. If `sensor.givtcp_{geserial}_pv_power` changes from >= inverter limit to < inverter limit
+3. If `sensor.givtcp_{geserial}_pv_power` changes from >= inverter limit to < inverter limit and `predbat.rates > 0`:
 	- Set `select.predbat_manual_discharge` for this half-hour (to prioritise export over battery charging if the sun goes behind a cloud)
 4. If `sensor.givtcp_{geserial}_pv_power` becomes >= inverter limit
 	- Reset `select.predbat_manual_discharge`
