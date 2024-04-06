@@ -14,12 +14,8 @@ condition:
     above: 0
   - condition: template
     value_template: >-
-      {% set t =
-      state_attr('automation.pv_clipping_pv_drops_below_inverter_limit',
-      'last_triggered') %}
-
-      {% if state_attr('automation.pv_clipping_pv_drops_below_inverter_limit',
-      'last_triggered') == none %}
+      {% set t = state_attr('automation.pv_clipping_pv_drops_below_inverter_limit', 'last_triggered') %}
+      {% if t == none %}
         {{ true }}
       {% else %}
         {{ now().strftime("%S") > t.astimezone().strftime("%S") + 120 }}
