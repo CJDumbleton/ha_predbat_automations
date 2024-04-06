@@ -10,6 +10,7 @@ The logic is as follows:
 	    - Increment `input_number.predbat_best_soc_max` by (solar forecast for next 30 minute period - inverter limit)
 3. If `sensor.givtcp_{geserial}_pv_power` changes from >= inverter limit to < inverter limit and `predbat.rates > 0`:
 	- Set `select.predbat_manual_discharge` for this half-hour (to prioritise export over battery charging if the sun goes behind a cloud)
+        - Don't run this automation more than once every two minutes.
 4. If `sensor.givtcp_{geserial}_pv_power` becomes >= inverter limit
 	- Reset `select.predbat_manual_discharge`
 - Note: you must have Solcast set up so your AC capacity is equal to your DC capacity (both equal to your array peak kW). Otherwise, Solcast will provide clipped forecast data.
