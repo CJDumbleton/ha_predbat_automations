@@ -18,7 +18,7 @@ condition:
       {% if t == none %}
         {{ true }}
       {% else %}
-        {{ now().strftime("%S") > t.astimezone().strftime("%S") + 120 }}
+        {{ now().strftime("%s") | int > (t.astimezone().strftime("%s") | int + 120) }}
       {% endif %}
 action:
   - service: select.select_option
