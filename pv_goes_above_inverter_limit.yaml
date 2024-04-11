@@ -12,7 +12,7 @@ action:
   - service: select.select_option
     metadata: {}
     data:
-      option: Reset
+      option: reset
     target:
       entity_id: select.predbat_manual_discharge
 mode: single
