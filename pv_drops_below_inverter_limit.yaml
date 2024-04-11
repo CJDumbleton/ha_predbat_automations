@@ -20,6 +20,12 @@ condition:
       {% else %}
         {{ now().strftime("%s") | int > (t.astimezone().strftime("%s") | int + 120) }}
       {% endif %}
+  - condition: template
+    value_template: |-
+      {# Check this half-hour is not already set to force discharge #} 
+      {% set t =  utcnow().strftime("%s") | int %} 
+      {% set half_hour = (t - (t % 1800 )) | timestamp_custom("%H:%M:%S") %}
+      {{ half_hour not in states('select.predbat_manual_discharge') }}
 action:
   - service: select.select_option
     metadata: {}
