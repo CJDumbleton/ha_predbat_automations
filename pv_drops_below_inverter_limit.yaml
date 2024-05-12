@@ -1,25 +1,17 @@
 alias: PV clipping - PV drops below inverter limit
-description:  >-
-  Predbat force manual discharge to prioritise export over battery charging if the sun goes 
-  behind a cloud. (Replace geserial with your GE inverter serial number. 
-  Replace 5000 with your hybrid inverter limit in Watts.)
+description: >-
+  Predbat force manual discharge to prioritise export over battery charging if
+  the sun goes behind a cloud. (Replace geserial with your GE inverter serial
+  number. Replace 5000 with your hybrid inverter limit in Watts.)
 trigger:
   - platform: numeric_state
     entity_id:
-      - sensor.givtcp_{geserial}_pv_power
+      - sensor.givtcp_fd2249g771_pv_power
     below: 5000
 condition:
   - condition: numeric_state
     entity_id: predbat.rates
     above: 0
-  - condition: template
-    value_template: >-
-      {% set t = state_attr('automation.pv_clipping_pv_drops_below_inverter_limit', 'last_triggered') %}
-      {% if t == none %}
-        {{ true }}
-      {% else %}
-        {{ now().strftime("%s") | int > (t.astimezone().strftime("%s") | int + 120) }}
-      {% endif %}
   - condition: template
     value_template: |-
       {# Check this half-hour is not already set to force discharge #} 
@@ -31,9 +23,9 @@ action:
     metadata: {}
     data:
       option: >
-        {# Round down the time to nearest half-hour #} 
-        {% set t =  utcnow().strftime("%s") | int %} 
-        {{ (t - (t % 1800 )) | timestamp_custom("%H:%M:%S") }}
+        {# Round down the time to nearest half-hour #}  {% set t = 
+        utcnow().strftime("%s") | int %}  {{ (t - (t % 1800 )) |
+        timestamp_custom("%H:%M:%S") }}
     target:
       entity_id: select.predbat_manual_discharge
 mode: single
