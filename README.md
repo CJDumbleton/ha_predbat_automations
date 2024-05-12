@@ -1,5 +1,5 @@
 The logic is as follows:
-1. We want to stop the battery charging fully overnight if PV clipping is forecast in the next 24 hours. So, at sunset and after any Solcast update between sunset and sunrise or if import rate toggles between positive and negative, after delay of `input_number.predbat_calculate_plan_every` + 5 minutes: 
+1. We want to make room in the battery if PV clipping is forecast in the next 24 hours. So, at sunrise: 
 	- If `predbat.rates < 0`, 
 		- set `input_number.predbat_best_soc_max = 0` (auto), 
 	- else:
