@@ -11,7 +11,7 @@ condition:
     entity_id: predbat.rates
     above: 0
   - condition: template
-    value_template: |2-
+    value_template:
           {# Default is 5 kW hybrid inverter.  Change the 5 to 3.6 if you have a 3.6
           kW inverter#}    
           {% set inverter_limit = namespace(value = 5 / 6) %}   
@@ -52,7 +52,7 @@ action:
       entity_id: select.predbat_manual_discharge
   - if:
       - condition: template
-        value_template: |2-
+        value_template:
               {# Default is 5 kW hybrid inverter.  Change the 5 to 3.6 if you have a 3.6
               kW inverter#}    
               {% set inverter_limit = namespace(value = 5 / 6) %}   
@@ -93,7 +93,7 @@ action:
           entity_id: select.predbat_manual_discharge
   - if:
       - condition: template
-        value_template: |2-
+        value_template:
               {# Default is 5 kW hybrid inverter.  Change the 5 to 3.6 if you have a 3.6
               kW inverter#}    
               {% set inverter_limit = namespace(value = 5 / 6) %}   
@@ -133,7 +133,7 @@ action:
           entity_id: select.predbat_manual_discharge
   - if:
       - condition: template
-        value_template: |2-
+        value_template:
               {# Default is 5 kW hybrid inverter.  Change the 5 to 3.6 if you have a 3.6
               kW inverter#}    
               {% set inverter_limit = namespace(value = 5 / 6) %}   
@@ -173,7 +173,7 @@ action:
           entity_id: select.predbat_manual_discharge
   - if:
       - condition: template
-        value_template: |2-
+        value_template:
               {# Default is 5 kW hybrid inverter.  Change the 5 to 3.6 if you have a 3.6
               kW inverter#}    
               {% set inverter_limit = namespace(value = 5 / 6) %}   
@@ -213,7 +213,7 @@ action:
           entity_id: select.predbat_manual_discharge
   - if:
       - condition: template
-        value_template: |2-
+        value_template:
               {# Default is 5 kW hybrid inverter.  Change the 5 to 3.6 if you have a 3.6
               kW inverter#}    
               {% set inverter_limit = namespace(value = 5 / 6) %}   
