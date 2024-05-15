@@ -3,43 +3,16 @@ description: >-
   Make room in battery at sunrise if PV clipping is forecast in the next 24
   hours
 trigger:
-  - platform: sun
-    event: sunrise
-    offset: 0
+  - platform: state
+    entity_id:
+      - input_number.pv_clipped_in_next_24_hours
 condition:
   - condition: numeric_state
     entity_id: predbat.rates
     above: 0
   - condition: template
-    value_template:
-          {# Default is 5 kW hybrid inverter.  Change the 5 to 3.6 if you have a 3.6
-          kW inverter#}    
-          {% set inverter_limit = namespace(value = 5 / 6) %}   
-          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output rate. #}    
-          {% set battery_max_output = namespace(value = 1.8) %}    
-          {# Tune tuning_factor to optimise battery availability. #}  
-          {% set tuning_factor = namespace(value=0.65) %}   
-          {# Default is 2 kW minimum best_soc_max. Change as you wish. #}  
-          {% set pv_clipped = namespace(value=0.0) %}    
-          {% set pv_prev = namespace(value=0.0) %}   
-          {% set pv_cur = namespace(value=0.0) %}    
-          {%- for ten_min_period in state_attr('predbat.pv_energy', 'results') -%}
-            {% if loop.index0 == 0 %}
-              {%- set pv_prev.value = state_attr('predbat.pv_energy', 'results')[ten_min_period] | float -%}
-            {% else %}
-              {%- set pv_cur.value = state_attr('predbat.pv_energy', 'results')[ten_min_period] | float -%}
-              {% set tuned_clipped = (pv_cur.value - pv_prev.value) / tuning_factor.value %}
-              {% if tuned_clipped > inverter_limit.value %}
-                {%- set pv_clipped.value = pv_clipped.value + tuned_clipped - inverter_limit.value -%}
-              {% endif %}
-              {%- set pv_prev.value = pv_cur.value -%}
-            {% endif %}
-            {# Only look at the next 24 hours (each loop is 10 minutes) #}
-            {% if loop.index0 == 144 %}
-              {% break %}
-            {% endif %}
-          {%- endfor -%} 
-          {{ pv_clipped.value > 0 }}
+    value_template: |
+      {{ states('input_number.pv_clipped_in_next_24_hours') > 0 }}
 action:
   - service: select.select_option
     metadata: {}
@@ -52,35 +25,14 @@ action:
       entity_id: select.predbat_manual_discharge
   - if:
       - condition: template
-        value_template:
-              {# Default is 5 kW hybrid inverter.  Change the 5 to 3.6 if you have a 3.6
-              kW inverter#}    
-              {% set inverter_limit = namespace(value = 5 / 6) %}   
-              {#  Default is 1.8 kWh in 30 minutes. Change to your battery output rate. #}    
-              {% set battery_max_output = namespace(value = 1.8) %}    
-              {# Tune tuning_factor to optimise battery availability. #}  
-              {% set tuning_factor = namespace(value=0.65) %}   
-              {# Default is 2 kW minimum best_soc_max. Change as you wish. #}  
-              {% set pv_clipped = namespace(value=0.0) %}    
-              {% set pv_prev = namespace(value=0.0) %}   
-              {% set pv_cur = namespace(value=0.0) %}    
-              {%- for ten_min_period in state_attr('predbat.pv_energy', 'results') -%}
-                {% if loop.index0 == 0 %}
-                  {%- set pv_prev.value = state_attr('predbat.pv_energy', 'results')[ten_min_period] | float -%}
-                {% else %}
-                  {%- set pv_cur.value = state_attr('predbat.pv_energy', 'results')[ten_min_period] | float -%}
-                  {% set tuned_clipped = (pv_cur.value - pv_prev.value) / tuning_factor.value %}
-                  {% if tuned_clipped > inverter_limit.value %}
-                    {%- set pv_clipped.value = pv_clipped.value + tuned_clipped - inverter_limit.value -%}
-                  {% endif %}
-                  {%- set pv_prev.value = pv_cur.value -%}
-                {% endif %}
-                {# Only look at the next 24 hours (each loop is 10 minutes) #}
-                {% if loop.index0 == 144 %}
-                  {% break %}
-                {% endif %}
-              {%- endfor -%} 
-              {{ pv_clipped.value > battery_max_output }}
+        value_template: >-
+          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output
+          rate. #}    
+
+          {% set battery_max_output = namespace(value = 1.8) %}    
+
+          {{ states('input_number.pv_clipped_in_next_24_hours') >
+          battery_max_output }}
     then:
       - service: select.select_option
         metadata: {}
@@ -93,35 +45,14 @@ action:
           entity_id: select.predbat_manual_discharge
   - if:
       - condition: template
-        value_template:
-              {# Default is 5 kW hybrid inverter.  Change the 5 to 3.6 if you have a 3.6
-              kW inverter#}    
-              {% set inverter_limit = namespace(value = 5 / 6) %}   
-              {#  Default is 1.8 kWh in 30 minutes. Change to your battery output rate. #}    
-              {% set battery_max_output = namespace(value = 1.8) %}    
-              {# Tune tuning_factor to optimise battery availability. #}  
-              {% set tuning_factor = namespace(value=0.65) %}   
-              {# Default is 2 kW minimum best_soc_max. Change as you wish. #}  
-              {% set pv_clipped = namespace(value=0.0) %}    
-              {% set pv_prev = namespace(value=0.0) %}   
-              {% set pv_cur = namespace(value=0.0) %}    
-              {%- for ten_min_period in state_attr('predbat.pv_energy', 'results') -%}
-                {% if loop.index0 == 0 %}
-                  {%- set pv_prev.value = state_attr('predbat.pv_energy', 'results')[ten_min_period] | float -%}
-                {% else %}
-                  {%- set pv_cur.value = state_attr('predbat.pv_energy', 'results')[ten_min_period] | float -%}
-                  {% set tuned_clipped = (pv_cur.value - pv_prev.value) / tuning_factor.value %}
-                  {% if tuned_clipped > inverter_limit.value %}
-                    {%- set pv_clipped.value = pv_clipped.value + tuned_clipped - inverter_limit.value -%}
-                  {% endif %}
-                  {%- set pv_prev.value = pv_cur.value -%}
-                {% endif %}
-                {# Only look at the next 24 hours (each loop is 10 minutes) #}
-                {% if loop.index0 == 144 %}
-                  {% break %}
-                {% endif %}
-              {%- endfor -%} 
-              {{ pv_clipped.value > (battery_max_output * 2) }}
+        value_template: >-
+          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output
+          rate. #}    
+
+          {% set battery_max_output = namespace(value = 1.8) %}    
+
+          {{ states('input_number.pv_clipped_in_next_24_hours') >
+          (battery_max_output * 2) }}
     then:
       - service: select.select_option
         metadata: {}
@@ -133,35 +64,14 @@ action:
           entity_id: select.predbat_manual_discharge
   - if:
       - condition: template
-        value_template:
-              {# Default is 5 kW hybrid inverter.  Change the 5 to 3.6 if you have a 3.6
-              kW inverter#}    
-              {% set inverter_limit = namespace(value = 5 / 6) %}   
-              {#  Default is 1.8 kWh in 30 minutes. Change to your battery output rate. #}    
-              {% set battery_max_output = namespace(value = 1.8) %}    
-              {# Tune tuning_factor to optimise battery availability. #}  
-              {% set tuning_factor = namespace(value=0.65) %}   
-              {# Default is 2 kW minimum best_soc_max. Change as you wish. #}  
-              {% set pv_clipped = namespace(value=0.0) %}    
-              {% set pv_prev = namespace(value=0.0) %}   
-              {% set pv_cur = namespace(value=0.0) %}    
-              {%- for ten_min_period in state_attr('predbat.pv_energy', 'results') -%}
-                {% if loop.index0 == 0 %}
-                  {%- set pv_prev.value = state_attr('predbat.pv_energy', 'results')[ten_min_period] | float -%}
-                {% else %}
-                  {%- set pv_cur.value = state_attr('predbat.pv_energy', 'results')[ten_min_period] | float -%}
-                  {% set tuned_clipped = (pv_cur.value - pv_prev.value) / tuning_factor.value %}
-                  {% if tuned_clipped > inverter_limit.value %}
-                    {%- set pv_clipped.value = pv_clipped.value + tuned_clipped - inverter_limit.value -%}
-                  {% endif %}
-                  {%- set pv_prev.value = pv_cur.value -%}
-                {% endif %}
-                {# Only look at the next 24 hours (each loop is 10 minutes) #}
-                {% if loop.index0 == 144 %}
-                  {% break %}
-                {% endif %}
-              {%- endfor -%} 
-              {{ pv_clipped.value > (battery_max_output * 3) }}
+        value_template: >-
+          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output
+          rate. #}    
+
+          {% set battery_max_output = namespace(value = 1.8) %}    
+
+          {{ states('input_number.pv_clipped_in_next_24_hours') >
+          (battery_max_output * 3) }}
     then:
       - service: select.select_option
         metadata: {}
@@ -173,35 +83,14 @@ action:
           entity_id: select.predbat_manual_discharge
   - if:
       - condition: template
-        value_template:
-              {# Default is 5 kW hybrid inverter.  Change the 5 to 3.6 if you have a 3.6
-              kW inverter#}    
-              {% set inverter_limit = namespace(value = 5 / 6) %}   
-              {#  Default is 1.8 kWh in 30 minutes. Change to your battery output rate. #}    
-              {% set battery_max_output = namespace(value = 1.8) %}    
-              {# Tune tuning_factor to optimise battery availability. #}  
-              {% set tuning_factor = namespace(value=0.65) %}   
-              {# Default is 2 kW minimum best_soc_max. Change as you wish. #}  
-              {% set pv_clipped = namespace(value=0.0) %}    
-              {% set pv_prev = namespace(value=0.0) %}   
-              {% set pv_cur = namespace(value=0.0) %}    
-              {%- for ten_min_period in state_attr('predbat.pv_energy', 'results') -%}
-                {% if loop.index0 == 0 %}
-                  {%- set pv_prev.value = state_attr('predbat.pv_energy', 'results')[ten_min_period] | float -%}
-                {% else %}
-                  {%- set pv_cur.value = state_attr('predbat.pv_energy', 'results')[ten_min_period] | float -%}
-                  {% set tuned_clipped = (pv_cur.value - pv_prev.value) / tuning_factor.value %}
-                  {% if tuned_clipped > inverter_limit.value %}
-                    {%- set pv_clipped.value = pv_clipped.value + tuned_clipped - inverter_limit.value -%}
-                  {% endif %}
-                  {%- set pv_prev.value = pv_cur.value -%}
-                {% endif %}
-                {# Only look at the next 24 hours (each loop is 10 minutes) #}
-                {% if loop.index0 == 144 %}
-                  {% break %}
-                {% endif %}
-              {%- endfor -%} 
-              {{ pv_clipped.value > (battery_max_output * 4) }}
+        value_template: >-
+          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output
+          rate. #}    
+
+          {% set battery_max_output = namespace(value = 1.8) %}    
+
+          {{ states('input_number.pv_clipped_in_next_24_hours') >
+          (battery_max_output * 4) }}
     then:
       - service: select.select_option
         metadata: {}
@@ -213,35 +102,14 @@ action:
           entity_id: select.predbat_manual_discharge
   - if:
       - condition: template
-        value_template:
-              {# Default is 5 kW hybrid inverter.  Change the 5 to 3.6 if you have a 3.6
-              kW inverter#}    
-              {% set inverter_limit = namespace(value = 5 / 6) %}   
-              {#  Default is 1.8 kWh in 30 minutes. Change to your battery output rate. #}    
-              {% set battery_max_output = namespace(value = 1.8) %}    
-              {# Tune tuning_factor to optimise battery availability. #}  
-              {% set tuning_factor = namespace(value=0.65) %}   
-              {# Default is 2 kW minimum best_soc_max. Change as you wish. #}  
-              {% set pv_clipped = namespace(value=0.0) %}    
-              {% set pv_prev = namespace(value=0.0) %}   
-              {% set pv_cur = namespace(value=0.0) %}    
-              {%- for ten_min_period in state_attr('predbat.pv_energy', 'results') -%}
-                {% if loop.index0 == 0 %}
-                  {%- set pv_prev.value = state_attr('predbat.pv_energy', 'results')[ten_min_period] | float -%}
-                {% else %}
-                  {%- set pv_cur.value = state_attr('predbat.pv_energy', 'results')[ten_min_period] | float -%}
-                  {% set tuned_clipped = (pv_cur.value - pv_prev.value) / tuning_factor.value %}
-                  {% if tuned_clipped > inverter_limit.value %}
-                    {%- set pv_clipped.value = pv_clipped.value + tuned_clipped - inverter_limit.value -%}
-                  {% endif %}
-                  {%- set pv_prev.value = pv_cur.value -%}
-                {% endif %}
-                {# Only look at the next 24 hours (each loop is 10 minutes) #}
-                {% if loop.index0 == 144 %}
-                  {% break %}
-                {% endif %}
-              {%- endfor -%} 
-              {{ pv_clipped.value > (battery_max_output * 5) }}
+        value_template: >-
+          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output
+          rate. #}    
+
+          {% set battery_max_output = namespace(value = 1.8) %}    
+
+          {{ states('input_number.pv_clipped_in_next_24_hours') >
+          (battery_max_output * 5) }}
     then:
       - service: select.select_option
         metadata: {}
