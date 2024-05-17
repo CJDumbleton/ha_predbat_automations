@@ -19,7 +19,7 @@ action:
     data:
       option: >
         {# Round down the time to nearest half-hour #}   {% set t =
-        utcnow().strftime("%s") | int %}   {{ (t - (t % 1800 )) |
+        utcnow().strftime("%s") | int %}   {{ (t - (t % 1800) + 9000) |
         timestamp_custom("%H:%M:%S") }}
     target:
       entity_id: select.predbat_manual_discharge
@@ -39,7 +39,7 @@ action:
         data:
           option: >
             {# Round up the time to nearest half-hour #}   {% set t =
-            utcnow().strftime("%s") | int %}   {{ (t - (t % 1800) + 1800) |
+            utcnow().strftime("%s") | int %}   {{ (t - (t % 1800) + 7200) |
             timestamp_custom("%H:%M:%S") }}
         target:
           entity_id: select.predbat_manual_discharge
@@ -59,7 +59,7 @@ action:
         data:
           option: >
             {% set t = utcnow().strftime("%s") | int %}    {{ (t - (t % 1800) +
-            3600) | timestamp_custom("%H:%M:%S") }}
+            5400) | timestamp_custom("%H:%M:%S") }}
         target:
           entity_id: select.predbat_manual_discharge
   - if:
@@ -78,7 +78,7 @@ action:
         data:
           option: >
             {% set t = utcnow().strftime("%s") | int %}    {{ (t - (t % 1800) +
-            5400) | timestamp_custom("%H:%M:%S") }}
+            3600) | timestamp_custom("%H:%M:%S") }}
         target:
           entity_id: select.predbat_manual_discharge
   - if:
@@ -97,7 +97,7 @@ action:
         data:
           option: >
             {% set t = utcnow().strftime("%s") | int %}    {{ (t - (t % 1800) +
-            7200) | timestamp_custom("%H:%M:%S") }}
+            1800) | timestamp_custom("%H:%M:%S") }}
         target:
           entity_id: select.predbat_manual_discharge
   - if:
@@ -115,8 +115,8 @@ action:
         metadata: {}
         data:
           option: >
-            {% set t = utcnow().strftime("%s") | int %}    {{ (t - (t % 1800) +
-            9000) | timestamp_custom("%H:%M:%S") }}
+            {% set t = utcnow().strftime("%s") | int %}    {{ (t - (t % 1800)) |
+            timestamp_custom("%H:%M:%S") }}
         target:
           entity_id: select.predbat_manual_discharge
 mode: single
