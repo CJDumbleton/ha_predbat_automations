@@ -12,7 +12,7 @@ condition:
     above: 0
   - condition: template
     value_template: |
-      {{ states('input_number.pv_clipped_in_next_24_hours') > 0 }}
+      {{ states('input_number.pv_clipped_in_next_24_hours') | float > 0 }}
 action:
   - service: select.select_option
     metadata: {}
