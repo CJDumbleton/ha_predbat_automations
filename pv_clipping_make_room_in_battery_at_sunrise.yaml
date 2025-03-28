@@ -1,187 +1,95 @@
 alias: PV clipping - make room in battery at sunrise
 description: >-
-  Make room in battery at sunrise if PV clipping is forecast in the next 24
-  hours
-trigger:
-  - platform: state
-    entity_id:
+  Make room in battery at sunrise if PV clipping is forecast in the next 24 hours
+triggers:
+  - entity_id:
       - input_number.pv_clipped_in_next_24_hours
-condition:
+    trigger: state
+conditions:
   - condition: numeric_state
     entity_id: predbat.rates
     above: 0
   - condition: template
     value_template: |
       {{ states('input_number.pv_clipped_in_next_24_hours') | float > 0 }}
-action:
-  - service: select.select_option
-    metadata: {}
+actions:
+  - metadata: {}
     data:
       option: >
-        {# Round down the time to nearest half-hour #}   {% set t =
-        utcnow().strftime("%s") | int %}   {{ (t - (t % 1800) + 16200) |
-        timestamp_custom("%H:%M:%S") }}
+        {# Round down the time to nearest half-hour #}   
+        {% set t = utcnow().strftime("%s") | int %}   
+        {{ (t - (t % 1800) + 16200) | timestamp_custom("%H:%M:%S") }}
     target:
-      entity_id: select.predbat_manual_discharge
-  - service: select.select_option
-    metadata: {}
+      entity_id: select.predbat_manual_export
+    action: select.select_option
+  - metadata: {}
     data:
       option: >
-        {# Round down the time to nearest half-hour #}   {% set t =
-        utcnow().strftime("%s") | int %}   {{ (t - (t % 1800) + 14400) |
-        timestamp_custom("%H:%M:%S") }}
+        {# Round down the time to nearest half-hour #}   
+        {% set t = utcnow().strftime("%s") | int %}   
+        {{ (t - (t % 1800) + 14400) | timestamp_custom("%H:%M:%S") }}
     target:
-      entity_id: select.predbat_manual_discharge
+      entity_id: select.predbat_manual_export
+    action: select.select_option
   - if:
       - condition: template
         value_template: >-
-          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output
-          rate. #}    
-
+          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output rate. #}    
           {% set battery_max_output = namespace(value = 1.8) %}    
-
-          {{ states('input_number.pv_clipped_in_next_24_hours') | float >
-          battery_max_output.value }}
+          {{ states('input_number.pv_clipped_in_next_24_hours') | float > battery_max_output.value }}
     then:
-      - service: select.select_option
-        metadata: {}
+      - metadata: {}
         data:
           option: >
-            {# Round up the time to nearest half-hour #}   {% set t =
-            utcnow().strftime("%s") | int %}   {{ (t - (t % 1800) + 12600) |
-            timestamp_custom("%H:%M:%S") }}
+            {# Round up the time to nearest half-hour #}   
+            {% set t = utcnow().strftime("%s") | int %}   
+            {{ (t - (t % 1800) + 12600) | timestamp_custom("%H:%M:%S") }}
         target:
-          entity_id: select.predbat_manual_discharge
+          entity_id: select.predbat_manual_export
+        action: select.select_option
   - if:
       - condition: template
         value_template: >-
-          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output
-          rate. #}    
-
+          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output rate. #}    
           {% set battery_max_output = namespace(value = 1.8) %}    
-
-          {{ states('input_number.pv_clipped_in_next_24_hours') | float >
-          battery_max_output.value }}
+          {{ states('input_number.pv_clipped_in_next_24_hours') | float > battery_max_output.value }}
     then:
-      - service: select.select_option
-        metadata: {}
+      - metadata: {}
         data:
           option: >
-            {% set t = utcnow().strftime("%s") | int %}    {{ (t - (t % 1800) +
-            10800) | timestamp_custom("%H:%M:%S") }}
+            {% set t = utcnow().strftime("%s") | int %}    
+            {{ (t - (t % 1800) + 10800) | timestamp_custom("%H:%M:%S") }}
         target:
-          entity_id: select.predbat_manual_discharge
+          entity_id: select.predbat_manual_export
+        action: select.select_option
   - if:
       - condition: template
         value_template: >-
-          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output
-          rate. #}    
-
+          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output rate. #}    
           {% set battery_max_output = namespace(value = 1.8) %}    
-
-          {{ states('input_number.pv_clipped_in_next_24_hours') | float >
-          (battery_max_output.value * 2) }}
+          {{ states('input_number.pv_clipped_in_next_24_hours') | float > (battery_max_output.value * 2) }}
     then:
-      - service: select.select_option
-        metadata: {}
+      - metadata: {}
         data:
           option: >
-            {% set t = utcnow().strftime("%s") | int %}    {{ (t - (t % 1800) +
-            9000) | timestamp_custom("%H:%M:%S") }}
+            {% set t = utcnow().strftime("%s") | int %}    
+            {{ (t - (t % 1800) + 9000) | timestamp_custom("%H:%M:%S") }}
         target:
-          entity_id: select.predbat_manual_discharge
+          entity_id: select.predbat_manual_export
+        action: select.select_option
   - if:
       - condition: template
         value_template: >-
-          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output
-          rate. #}    
-
+          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output rate. #}    
           {% set battery_max_output = namespace(value = 1.8) %}    
-
-          {{ states('input_number.pv_clipped_in_next_24_hours') | float >
-          (battery_max_output.value * 2) }}
+          {{ states('input_number.pv_clipped_in_next_24_hours') | float > (battery_max_output.value * 2) }}
     then:
-      - service: select.select_option
-        metadata: {}
+      - metadata: {}
         data:
           option: >
-            {% set t = utcnow().strftime("%s") | int %}    {{ (t - (t % 1800) +
-            7200) | timestamp_custom("%H:%M:%S") }}
+            {% set t = utcnow().strftime("%s") | int %}    
+            {{ (t - (t % 1800) + 7200) | timestamp_custom("%H:%M:%S") }}
         target:
-          entity_id: select.predbat_manual_discharge
-  - if:
-      - condition: template
-        value_template: >-
-          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output
-          rate. #}    
-
-          {% set battery_max_output = namespace(value = 1.8) %}    
-
-          {{ states('input_number.pv_clipped_in_next_24_hours') | float >
-          (battery_max_output.value * 3) }}
-    then:
-      - service: select.select_option
-        metadata: {}
-        data:
-          option: >
-            {% set t = utcnow().strftime("%s") | int %}    {{ (t - (t % 1800) + 5400) |
-            timestamp_custom("%H:%M:%S") }}
-        target:
-          entity_id: select.predbat_manual_discharge
-  - if:
-      - condition: template
-        value_template: >-
-          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output
-          rate. #}    
-
-          {% set battery_max_output = namespace(value = 1.8) %}    
-
-          {{ states('input_number.pv_clipped_in_next_24_hours') | float >
-          (battery_max_output.value * 3) }}
-    then:
-      - service: select.select_option
-        metadata: {}
-        data:
-          option: >
-            {% set t = utcnow().strftime("%s") | int %}    {{ (t - (t % 1800) +
-            3600) | timestamp_custom("%H:%M:%S") }}
-        target:
-          entity_id: select.predbat_manual_discharge
-  - if:
-      - condition: template
-        value_template: >-
-          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output
-          rate. #}    
-
-          {% set battery_max_output = namespace(value = 1.8) %}    
-
-          {{ states('input_number.pv_clipped_in_next_24_hours') | float >
-          (battery_max_output.value * 4) }}
-    then:
-      - service: select.select_option
-        metadata: {}
-        data:
-          option: >
-            {% set t = utcnow().strftime("%s") | int %}    {{ (t - (t % 1800) +
-            1800) | timestamp_custom("%H:%M:%S") }}
-        target:
-          entity_id: select.predbat_manual_discharge
-  - if:
-      - condition: template
-        value_template: >-
-          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output
-          rate. #}    
-
-          {% set battery_max_output = namespace(value = 1.8) %}    
-
-          {{ states('input_number.pv_clipped_in_next_24_hours') | float >
-          (battery_max_output.value * 5) }}
-    then:
-      - service: select.select_option
-        metadata: {}
-        data:
-          option: >
-            {% set t = utcnow().strftime("%s") | int %}    {{ (t - (t % 1800)) | timestamp_custom("%H:%M:%S") }}
-        target:
-          entity_id: select.predbat_manual_discharge
+          entity_id: select.predbat_manual_export
+        action: select.select_option
 mode: single
