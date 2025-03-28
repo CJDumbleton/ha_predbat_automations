@@ -1,41 +1,44 @@
 alias: PV clipping - PV goes above inverter limit
 description: >-
-  Cancel any predbat force manual discharge. (Replace geserial with your GE
+  Cancel any predbat force manual export. (Replace geserial with your GE
   inverter  serial number. Replace 5000 with your hybrid inverter limit in
   Watts.)
-trigger:
-  - platform: numeric_state
-    entity_id:
-      - sensor.givtcp_fd2249g771_pv_power
+triggers:
+  - entity_id:
+      - sensor.givtcp_geserial_pv_power
     above: 5000
-  - platform: time_pattern
-    minutes: "1"
-  - platform: time_pattern
-    minutes: "31"
-condition:
+    trigger: numeric_state
+  - minutes: "1"
+    trigger: time_pattern
+  - minutes: "31"
+    trigger: time_pattern
+conditions:
+  - condition: sun
+    before: sunset
+    after: sunrise
   - condition: numeric_state
     entity_id: predbat.rates
     above: 0
   - condition: template
     value_template: |-
-      {# Check this half-hour is not already set to force discharge #} 
+      {# Check this half-hour is not already set to force export #} 
       {% set t =  utcnow().strftime("%s") | int %} 
       {% set half_hour = (t - (t % 1800 )) | timestamp_custom("%H:%M:%S") %}
-      {{ half_hour not in states('select.predbat_manual_discharge') }}
+      {{ half_hour not in states('select.predbat_manual_export') }}
   - condition: numeric_state
-    entity_id: sensor.givtcp_fd2249g771_pv_power
+    entity_id: sensor.givtcp_geserial_pv_power
     above: 5000
-  - condition: sun
-    before: sunset
-    after: sunrise
-action:
-  - service: select.select_option
-    metadata: {}
+  - condition: numeric_state
+    entity_id: predbat.soc_kw_h0
+    above: 1
+actions:
+  - metadata: {}
     data:
       option: >
-        {# Round down the time to nearest half-hour #}  {% set t = 
-        utcnow().strftime("%s") | int %}  {{ (t - (t % 1800 )) |
-        timestamp_custom("%H:%M:%S") }}
+        {# Round down the time to nearest half-hour #}  
+        {% set t = utcnow().strftime("%s") | int %}  
+        {{ (t - (t % 1800 )) | timestamp_custom("%H:%M:%S") }}
     target:
-      entity_id: select.predbat_manual_discharge
+      entity_id: select.predbat_manual_export
+    action: select.select_option
 mode: single
