@@ -13,4 +13,4 @@ The logic is as follows:
 - Note: you must have Solcast set up so your AC capacity is equal to your DC capacity (both equal to your array peak kW). Otherwise, Solcast will provide clipped forecast data.
 
 To use these automations, you will need to adjust the constants in the yaml such as GE inverter serial number, inverter capacity and battery charge rate.
-You will also need to create a Home Assistant helper input number `input_number.pv_clipped_in_next_24_hours`. You can change `tuning_factor` in `pv_clipping_in_next_24_hours.yaml` to adjust much impact the automations have.
+You will also need to create a Home Assistant helper input number `input_number.pv_clipped_in_next_24_hours`. You can change `tuning_factor` in `pv_clipping_in_next_24_hours.yaml` to adjust the impact of the automations.
