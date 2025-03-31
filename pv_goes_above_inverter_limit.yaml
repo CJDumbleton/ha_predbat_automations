@@ -1,6 +1,6 @@
 alias: PV clipping - PV goes above inverter limit
 description: >-
-  Cancel any predbat force manual export. (Replace geserial with your GE
+  Set predbat force manual export for this 30-min period. (Replace geserial with your GE
   inverter  serial number. Replace 5000 with your hybrid inverter limit in
   Watts.)
 triggers:
