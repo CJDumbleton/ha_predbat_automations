@@ -1,6 +1,22 @@
 alias: PV clipping - make room in battery at sunrise
 description: >-
-  Make room in battery at sunrise if PV clipping is forecast in the next 24 hours
+  Make room in battery at sunrise if PV clipping is forecast in the next 24
+  hours  
+
+  If any clipping is predicted, set the first 30-min exports for 4 and 4.5 hours
+  after sunrise.
+
+  Then roughly backfill towards sunrise:
+
+  -if the predicted clipping is greater than the maximum 30-min export rate,
+  also export at 3 and 3.5 hours after sunrise.
+
+  -if the predicted clipping is greater than twice the maximum 30-min export
+  rate, also export at 2 and 2.5 hours after sunrise.
+
+  Allow extra time than you might first think for battery exporting because
+  during this period, there is also likely to be solar exporting using up export
+  capacity.
 triggers:
   - entity_id:
       - input_number.pv_clipped_in_next_24_hours
