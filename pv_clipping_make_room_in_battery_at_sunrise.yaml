@@ -18,9 +18,9 @@ description: >-
   during this period, there is also likely to be solar exporting using up export
   capacity.
 triggers:
-  - entity_id:
-      - input_number.pv_clipped_in_next_24_hours
-    trigger: state
+  - event: sunrise
+    offset: "120"
+    trigger: sun
 conditions:
   - condition: numeric_state
     entity_id: predbat.rates
