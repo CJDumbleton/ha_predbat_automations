@@ -71,7 +71,7 @@ actions:
                 option: >
                   {% set t = utcnow().strftime("%s") | int %}       
                   {# Round up the time to nearest half-hour #}     
-                  {# Set 30-min export for offset seconds after sunrise #}   
+                  {# Set 30-min freeze charge for offset seconds after sunrise #}   
                   {% set offset = (8 - repeat.index) * 1800 %}    
                   {{ (t - (t % 1800) + offset) | timestamp_custom("%H:%M:%S") }}
               target:
