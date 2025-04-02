@@ -3,20 +3,11 @@ description: >-
   Make room in battery at sunrise if PV clipping is forecast in the next 24
   hours  
 
-  If any clipping is predicted, set the first 30-min exports for 3 and 3.5 hours
-  after sunrise.
-
-  Then roughly backfill towards sunrise:
-
-  -if the predicted clipping is greater than the maximum 30-min export rate,
-  also export at 2 and 2.5 hours after sunrise.
-
-  -if the predicted clipping is greater than twice the maximum 30-min export
-  rate, also export at 1 and 1.5 hours after sunrise.
-
-  Allow extra time than you might first think for battery exporting because
-  during this period, there is also likely to be solar exporting using up export
-  capacity.
+  If any clipping is predicted, set the first 30-min export for 3.5 hours after
+  sunrise. Then roughly backfill towards sunrise: Assumes a straight-line
+  increase in export capacity being taken up by solar export from sunrise to 4
+  hours after. And a correspondingly decrease in availability for battery
+  export. Does not account for load or current battery SOC.
 triggers:
   - event: sunrise
     offset: "120"
@@ -29,96 +20,53 @@ conditions:
     value_template: |
       {{ states('input_number.pv_clipped_in_next_24_hours') | float > 0 }}
 actions:
-  - metadata: {}
-    data:
-      option: >
-        {% set t = utcnow().strftime("%s") | int %}    
-        {# Round down the time to nearest half-hour #}   
-        {# Set 30-min export for 3.5 hours after sunrise #} 
-        {{ (t - (t % 1800) + 12600) | timestamp_custom("%H:%M:%S") }}
-    target:
-      entity_id: select.predbat_manual_export
-    action: select.select_option
-  - metadata: {}
-    data:
-      option: >
-        {% set t = utcnow().strftime("%s") | int %} 
-        {# Round down the time to nearest half-hour #}   
-        {# Set 30-min export for 3 hours after sunrise #}
-        {{ (t - (t % 1800) + 10800) | timestamp_custom("%H:%M:%S") }}
-    target:
-      entity_id: select.predbat_manual_export
-    action: select.select_option
-  - if:
-      - condition: template
-        value_template: >-
-          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output rate. #}     
-          {% set battery_max_output = namespace(value = 1.8) %}    
-          {# If the predicted clipping is greater than the maximum 30-min export rate #} 
-          {{ states('input_number.pv_clipped_in_next_24_hours') | float > battery_max_output.value }}
-    then:
-      - metadata: {}
-        data:
-          option: >
-            {% set t = utcnow().strftime("%s") | int %} 
-            {# Round up the time to nearest half-hour #}   
-            {# Set 30-min export for 2.5 hours after sunrise #} 
-            {{ (t - (t % 1800) + 9000) | timestamp_custom("%H:%M:%S") }}
-        target:
-          entity_id: select.predbat_manual_export
-        action: select.select_option
-  - if:
-      - condition: template
-        value_template: >-
-          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output rate. #}     
-          {% set battery_max_output = namespace(value = 1.8) %}  
-          {# If the predicted clipping is greater than the maximum 30-min export rate #} 
-          {{ states('input_number.pv_clipped_in_next_24_hours') | float > battery_max_output.value }}
-    then:
-      - metadata: {}
-        data:
-          option: >
-            {% set t = utcnow().strftime("%s") | int %}   
-            {# Round up the time to nearest half-hour #}   
-            {# Set 30-min export for 2 hours after sunrise #} 
-            {{ (t - (t % 1800) + 7200) | timestamp_custom("%H:%M:%S") }}
-        target:
-          entity_id: select.predbat_manual_export
-        action: select.select_option
-  - if:
-      - condition: template
-        value_template: >-
-          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output rate. #}     
-          {% set battery_max_output = namespace(value = 1.8) %}    
-          {# If the predicted clipping is greater than twice the maximum 30-min export rate #} 
-          {{ states('input_number.pv_clipped_in_next_24_hours') | float > (battery_max_output.value * 2) }}
-    then:
-      - metadata: {}
-        data:
-          option: >
-            {% set t = utcnow().strftime("%s") | int %}     
-            {# Round up the time to nearest half-hour #}   
-            {# Set 30-min export for 1.5 hours after sunrise #} 
-            {{ (t - (t % 1800) + 5400) | timestamp_custom("%H:%M:%S") }}
-        target:
-          entity_id: select.predbat_manual_export
-        action: select.select_option
-  - if:
-      - condition: template
-        value_template: >-
-          {#  Default is 1.8 kWh in 30 minutes. Change to your battery output rate. #}     
-          {% set battery_max_output = namespace(value = 1.8) %}  
-          {# If the predicted clipping is greater than twice the maximum 30-min export rate #} 
-          {{ states('input_number.pv_clipped_in_next_24_hours') | float > (battery_max_output.value * 2) }}
-    then:
-      - metadata: {}
-        data:
-          option: >
-            {% set t = utcnow().strftime("%s") | int %}     
-            {# Round up the time to nearest half-hour #}   
-            {# Set 30-min export for 1 hours after sunrise #} 
-            {{ (t - (t % 1800) + 3600) | timestamp_custom("%H:%M:%S") }}
-        target:
-          entity_id: select.predbat_manual_export
-        action: select.select_option
+  - repeat:
+      sequence:
+        - if:
+            - condition: template
+              value_template: "{{ repeat.index < 9 }}"
+          then:
+            - metadata: {}
+              data:
+                option: >
+                  {% set t = utcnow().strftime("%s") | int %}      
+                  {# Round up the time to nearest half-hour #}    
+                  {# Set 30-min export for offset seconds after sunrise #}  
+                  {% set offset = (8 - repeat.index) * 1800 %}   
+                  {{ (t - (t % 1800) + offset) | timestamp_custom("%H:%M:%S") }}
+              target:
+                entity_id: select.predbat_manual_export
+              action: select.select_option
+            - action: input_number.set_value
+              metadata: {}
+              data:
+                value: >
+                  {# Default is 5 kW hybrid inverter.  Change the 5 to 3.6 if you have a 3.6 kW inverter #}        
+                  {% set inverter_limit = 5.0 %}      
+                  {# Default is 3.6 kW maximum battery discharge rate. Change the 3.6 if different. #} 
+                  {% set bat_discharge_max = 3.6 %} 
+                  {# Assume straight line climb in solar export from 0 to inverter_limit over 8x30-min periods. #} 
+                  {% set solar_export = (8 - repeat.index) * (inverter_limit / 8) %} 
+                  {% set available_export_capacity = inverter_limit - solar_export %} 
+                  {# How much battery can be exported in 30-min period? #} 
+                  {% set battery_export = min(bat_discharge_max, available_export_capacity) / 2 %} 
+                  {{ states('input_number.pv_clipped_in_next_24_hours') | float - battery_export }}
+              target:
+                entity_id: input_number.pv_clipped_in_next_24_hours
+          else:
+            - action: input_number.set_value
+              metadata: {}
+              data:
+                value: 0
+              target:
+                entity_id: input_number.pv_clipped_in_next_24_hours
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 1
+            milliseconds: 0
+      while:
+        - condition: numeric_state
+          entity_id: input_number.pv_clipped_in_next_24_hours
+          above: 0.1
 mode: single
