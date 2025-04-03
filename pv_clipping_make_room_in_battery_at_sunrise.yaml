@@ -9,7 +9,7 @@ description: >-
 
   If any clipping is predicted, the automation sets the first 30-min export for
   (sunrise_to_clipping_hours - 0.5) hours after sunrise. Then roughly backfills
-  towards sunrise with appropriate force export and freeze charge slots. Assumes
+  towards sunrise with appropriate force export and freeze export slots. Assumes
   a straight-line increase in export capacity being taken up by solar export
   from sunrise to clipping start. And a corresponding decrease in availability
   for battery export. Does not account for load.
