@@ -80,7 +80,7 @@ actions:
                   {% set offset = (slots - repeat.index) * 1800 %}    
                   {{ (t - (t % 1800) + offset) | timestamp_custom("%H:%M:%S") }}
               target:
-                entity_id: select.predbat_manual_freeze_charge
+                entity_id: select.predbat_manual_freeze_export
               action: select.select_option
         - delay:
             hours: 0
