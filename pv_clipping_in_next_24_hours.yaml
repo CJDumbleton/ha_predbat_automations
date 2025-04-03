@@ -1,31 +1,38 @@
 alias: PV clipping - Forecast clipped PV for next 24 hours
-description: ""
-mode: single
+description: >-
+  Calculates forecast clipped PV for day = sum of 5 minute predbat.pv_energy 
+  forecasts > inverter limit.
+
+  Change the variables to suit your set-up. Adjust the tuning_factor to 
+  optimise battery availability. The tuning factor is designed to account  for
+  spikey solar due to intermittent clouds and how aggressive you want to  be
+  with making room in the battery - the lower the value, the more room it  will
+  make.
 triggers:
   - event: sunrise
     offset: 0
     trigger: sun
 conditions: []
 actions:
+  - variables:
+      tuning_factor: 0.9
+      inverter_limit_kW: 5
+      inverter_limit: "{{ inverter_limit_kW / 12 }}"
   - metadata: {}
     data:
       value: >
-        {# Default is 5 kW hybrid inverter.  Change the 5 to 3.6 if you have a 3.6 kW inverter #}       
-        {% set inverter_limit = namespace(value = 5 / 12) %}     
-        {# Tune tuning_factor to optimise battery availability. #}    
-        {% set tuning_factor = namespace(value=0.90) %}     
-        {% set pv_clipped = namespace(value=0.0) %}       
-        {% set pv_prev = namespace(value=0.0) %}      
-        {% set pv_cur = namespace(value=0.0) %}   
+        {% set pv_clipped = namespace(value=0.0) %}         
+        {% set pv_prev = namespace(value=0.0) %}        
+        {% set pv_cur = namespace(value=0.0) %}    
         {% if state_attr('predbat.pv_energy', 'results') %}
           {%- for five_min_period in state_attr('predbat.pv_energy', 'results') -%}
             {% if loop.index0 == 0 %}
               {%- set pv_prev.value = state_attr('predbat.pv_energy', 'results')[five_min_period] | float -%}
             {% else %}
               {%- set pv_cur.value = state_attr('predbat.pv_energy', 'results')[five_min_period] | float -%}
-              {% set tuned_clipped = (pv_cur.value - pv_prev.value) / tuning_factor.value %}
-              {% if tuned_clipped > inverter_limit.value %}
-                {%- set pv_clipped.value = pv_clipped.value + tuned_clipped - inverter_limit.value -%}
+              {% set tuned_clipped = (pv_cur.value - pv_prev.value) / tuning_factor %}
+              {% if tuned_clipped > inverter_limit %}
+                {%- set pv_clipped.value = pv_clipped.value + tuned_clipped - inverter_limit -%}
               {% endif %}
               {%- set pv_prev.value = pv_cur.value -%}
             {% endif %}
@@ -34,8 +41,9 @@ actions:
               {% break %}
             {% endif %}
           {%- endfor -%}    
-        {% endif %} 
+        {% endif %}   
         {{ pv_clipped.value }}
     target:
       entity_id: input_number.pv_clipped_in_next_24_hours
     action: input_number.set_value
+mode: single
