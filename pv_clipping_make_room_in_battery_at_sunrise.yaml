@@ -5,10 +5,10 @@ description: >-
 
   Adjust the variables to suit your set-up. The sunrise_to_clipping_hours 
   variable is the number of hours from sunrise to when your set-up is first at 
-  risk of clipping. Round to the nearest half-hour eg 3.5
+  risk of clipping. Round up to the nearest half-hour eg 3.5
 
   If any clipping is predicted, the automation sets the first 30-min export for
-  (sunrise_to_clipping_hours - 0.5) hours after sunrise. Then roughly backfills
+  (sunrise_to_clipping_hours - 0.5) hours after sunrise. Then backfills
   towards sunrise with appropriate force export and freeze export slots. Assumes
   a straight-line increase in export capacity being taken up by solar export
   from sunrise to clipping start. And a corresponding decrease in availability
