@@ -1,12 +1,12 @@
 alias: PV clipping - PV goes above inverter limit
 description: >-
-  Set predbat force manual export for this 30-min period. (Replace geserial with your GE
-  inverter  serial number. Replace 5000 with your hybrid inverter limit in
-  Watts.)
+  Set predbat force manual export for this 30-min period. (Replace geserial with
+  your GE inverter  serial number. Replace 5350 with your hybrid inverter limit
+  in Watts.)
 triggers:
   - entity_id:
-      - sensor.givtcp_geserial_pv_power
-    above: 5000
+      - sensor.givtcp_fd2249g771_pv_power
+    above: 5350
     trigger: numeric_state
   - minutes: "1"
     trigger: time_pattern
@@ -16,28 +16,22 @@ conditions:
   - condition: sun
     before: sunset
     after: sunrise
-  - condition: numeric_state
-    entity_id: predbat.rates
-    above: 0
   - condition: template
     value_template: |-
       {# Check this half-hour is not already set to force export #} 
       {% set t =  utcnow().strftime("%s") | int %} 
-      {% set half_hour = (t - (t % 1800 )) | timestamp_custom("%H:%M:%S") %}
+      {% set half_hour = (t - (t % 1800 )) | timestamp_custom("%a %H:%M") %}
       {{ half_hour not in states('select.predbat_manual_export') }}
   - condition: numeric_state
-    entity_id: sensor.givtcp_geserial_pv_power
-    above: 5000
-  - condition: numeric_state
-    entity_id: predbat.soc_kw_h0
-    above: 1
+    entity_id: sensor.givtcp_fd2249g771_pv_power
+    above: 5350
 actions:
   - metadata: {}
     data:
       option: >
         {# Round down the time to nearest half-hour #}  
         {% set t = utcnow().strftime("%s") | int %}  
-        {{ (t - (t % 1800 )) | timestamp_custom("%H:%M:%S") }}
+        {{ (t - (t % 1800 )) | timestamp_custom("%a %H:%M") }}
     target:
       entity_id: select.predbat_manual_export
     action: select.select_option
