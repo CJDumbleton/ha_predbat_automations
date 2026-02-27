@@ -8,11 +8,11 @@ description: >-
   risk of clipping. Round up to the nearest half-hour eg 3.5
 
   If any clipping is predicted, the automation sets the first 30-min export for
-  (sunrise_to_clipping_hours - 0.5) hours after sunrise. Then backfills
-  towards sunrise with appropriate force export and freeze export slots. Assumes
-  a straight-line increase in export capacity being taken up by solar export
-  from sunrise to clipping start. And a corresponding decrease in availability
-  for battery export. Does not account for load.
+  (sunrise_to_clipping_hours - 0.5) hours after sunrise. Then backfills towards
+  sunrise with appropriate force export and freeze export slots. Assumes a
+  straight-line increase in export capacity being taken up by solar export from
+  sunrise to clipping start. And a corresponding decrease in availability for
+  battery export. Does not account for load.
 triggers:
   - event: sunrise
     offset: "120"
@@ -29,7 +29,7 @@ actions:
       inverter_limit: 5
       bat_capacity_max: 9.5
       bat_discharge_max: 3.6
-      sunrise_to_clipping_hours: 4
+      sunrise_to_clipping_hours: 4.5
       slots: "{{ (sunrise_to_clipping_hours * 2) | int }}"
       soc: "{{ states('predbat.soc_kw_h0') | float }}"
   - repeat:
@@ -46,7 +46,7 @@ actions:
                   {# Round up the time to nearest half-hour #}    
                   {# Set 30-min export for offset seconds after sunrise #}  
                   {% set offset = (slots - repeat.index) * 1800 %}   
-                  {{ (t - (t % 1800) + offset) | timestamp_custom("%H:%M:%S") }}
+                  {{ (t - (t % 1800) + offset) | timestamp_custom("%a %H:%M") }}
               target:
                 entity_id: select.predbat_manual_export
               action: select.select_option
@@ -78,14 +78,8 @@ actions:
                   {# Round up the time to nearest half-hour #}     
                   {# Set 30-min freeze charge for offset seconds after sunrise #}   
                   {% set offset = (slots - repeat.index) * 1800 %}    
-                  {{ (t - (t % 1800) + offset) | timestamp_custom("%H:%M:%S") }}
+                  {{ (t - (t % 1800) + offset) | timestamp_custom("%a %H:%M") }}
               target:
                 entity_id: select.predbat_manual_freeze_export
               action: select.select_option
         - delay:
-            hours: 0
-            minutes: 0
-            seconds: 1
-            milliseconds: 0
-      count: "{{ slots }}"
-mode: single
