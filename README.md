@@ -1,3 +1,5 @@
+**ARCHIVED** These automations are no longer used as `select.predbat_manual_freeze_export` can no longer be used to keep the battery SOC constant.
+
 **Issue**: Clipping occurs when solar generation exceeds hybrid inverter AC capacity and there is no or limited battery capacity to make use of inverter DC capacity.
 **Workaround**: Use Home Assistant automations to adjust predbat behaviour:
 - `pv_clipping_in_next_24_hours.yaml`
